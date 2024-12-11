@@ -1,29 +1,20 @@
 import React, { useState } from "react";
+import {useSelector, useDispatch} from 'react-redux'
+import { validateuser } from "../Slices/userSlice";
+import { ForgetPasswordForm } from "../Components/ForgetPasswordForm";
+import { FormHoc } from "../HigherOrderComponent/FormHOC";
+import { LoginForm } from "../Components/LoginForm";
 
 export const Login = () => {
-    const [formValues, setFormValues] = useState({});
+    const loggedInUser = useSelector((state)=> state.user.loggedInUser)
+    const LoginFormHoc = FormHoc(LoginForm)
 
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        console.log(formValues);
-    }
-
-    const updateFormValue = (e) => {
-        const tempFormValues = { ...formValues }
-        console.log(e.target.value, e.target.name);
-        if (e.target.value && e.target.name) {
-            tempFormValues[e.target.name] = e.target.value;
-            setFormValues(tempFormValues);
-        }
-    }
 
     return (
-        <div>
-            <form onSubmit={handleFormSubmit}>
-                <input type="text" placeholder="User Name" value={formValues.username ? formValues.username : ""} onChange={(e) => updateFormValue(e)} name="username" />
-                <input type="password" value={formValues.password ? formValues.password : ""} placeholder="Password" onChange={(e) => updateFormValue(e)} name="password" />
-                <button type="submit">Login</button>
-            </form>
+        <div style={{display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", width:"100%", height:"100vh"}}>
+            <div>
+                <LoginFormHoc />
+            </div>
         </div>
     )
 }

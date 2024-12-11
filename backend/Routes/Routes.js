@@ -14,4 +14,12 @@ router.post('/validateUser', (req, res) => {
     userController.validateUser(req, res);
 })
 
+router.patch('/resetpassword',(req,res)=>{
+    userController.resetPassword(req,res);
+})
+
+router.post('/searchUsers', (req,res)=>{
+    userController.searchUsers(req,res);
+})
+
 module.exports = router;
