@@ -14,12 +14,16 @@ router.post('/validateUser', (req, res) => {
     userController.validateUser(req, res);
 })
 
-router.patch('/resetpassword',(req,res)=>{
-    userController.resetPassword(req,res);
+router.patch('/resetpassword', (req, res) => {
+    userController.resetPassword(req, res);
 })
 
-router.post('/searchUsers', (req,res)=>{
-    userController.searchUsers(req,res);
+router.post('/searchUsers', (req, res) => {
+    userController.searchUsers(req, res);
+});
+
+router.post('/addFriend', (req, res) => {
+    userController.addFriend(req, res)
 })
 
 module.exports = router;
