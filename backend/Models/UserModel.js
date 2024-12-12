@@ -9,7 +9,8 @@ const userSchema = mongoose.Schema({
     connectedUsers: { type: Map, required: false },
     activeStatus: { type: Boolean, required: false },
     isTyping: { type: Boolean, required: false },
-    friendRequests: { type: Map, of: Object, default: new Map() }
+    friendRequests: { type: Map, of: Object, default: new Map() },
+    friendList: {type: Map, of: Object, default: new Map()}
 });
 
 const User = mongoose.model('Users', userSchema);

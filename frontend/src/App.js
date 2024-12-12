@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCachedLists } from './Slices/userSlice';
+import { handleFriendRequest, setCachedLists } from './Slices/userSlice';
 import { makeApiCall } from './api/api';
 import { useNavigate } from 'react-router-dom';
 
 function App() {
-  const [userData, setUserData] = useState([]);
   const [searchUser, setSearchUser] = useState("");
   const [searchUserList, setSearchUserList] = useState([]);
-  const dispatch = useDispatch();
-  const loggedInUser = useSelector((state) => state.user.loggedInUser);
-  const navigate = useNavigate();
+  const [showFriendRequestPage, setShowFriendRequestPage] = useState(false);
 
+  
+  const loggedInUser = useSelector((state) => state.user.loggedInUser);
   const cachedLists = useSelector(state => state.user.cachedLists);
+  const friendRequests = loggedInUser?._id && new Map(Object.entries(loggedInUser.friendRequests));
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (loggedInUser == null) {
@@ -65,19 +68,59 @@ function App() {
   return (
     <div className="App">
       <div className='w-full h-screen bg-black flex flex-row'>
-        <div className='w-[50%] h-full bg-white p-2'>
-          <div className='w-full border border-black flex align-center items-center'>
-            <input type="text"
-              className='w-[95%] p-2 focus:outline-none'
-              value={searchUser}
-              onChange={(e) => { setSearchUser(e.target.value) }}
-              placeholder='Search user'
-            />
-            <div onClick={() => setSearchUser("")}>
-              <h1 className='text-xl'> X </h1>
+        <div className='w-[50%] max-h-full bg-white p-2 relative overflow-scroll'>
+          <div className='sticky top-0 bg-white'>
+            <div className='w-full border border-black flex align-center items-center'>
+              <input type="text"
+                className='w-[95%] p-2 focus:outline-none'
+                value={searchUser}
+                onChange={(e) => { setSearchUser(e.target.value) }}
+                placeholder='Search user'
+              />
+              <div onClick={() => setSearchUser("")}>
+                <h1 className='text-xl'> X </h1>
+              </div>
             </div>
+            { friendRequests?.size > 0 && 
+            <div className='mt-2 p-2 border border-black' onClick={()=>setShowFriendRequestPage(!showFriendRequestPage)}>
+                {
+                  !showFriendRequestPage ? 
+                  <div>New friend requests {friendRequests.size}</div>
+                  : <div>Show friend list</div>
+                }
+            </div>
+            }
           </div>
-          {searchUserList.length > 0 && searchUser.length > 3 ?
+          {showFriendRequestPage ? 
+            <div className='flex flex-col h-full flex-start items-start mt-2'>
+              {
+                Array.from(friendRequests,([key, value])=>{
+                  return(
+                    <div className='flex justify-between items-center border-black w-full border p-2 rounded'>
+                      <div>
+                        {value.from.name}
+                      </div>
+                      <div className='*:ml-2'>
+                        <button className='border-2 rounded p-1' 
+                        onClick={()=>dispatch(handleFriendRequest({
+                          isAccepted : true,
+                          from: loggedInUser,
+                          to: value.from
+                        }))}>Accept</button>
+                        <button className='border-2 rounded p-1' onClick={()=>{
+                          dispatch(handleFriendRequest({
+                            isAccepted : false,
+                            from: loggedInUser?._id,
+                            to: value?._id
+                          }))
+                        }}>Reject</button>
+                      </div>
+                    </div>
+                  )
+                })
+              }
+            </div>
+          :searchUserList.length > 0 && searchUser.length > 3 ?
             <div className='mt-2'>
               {
                 searchUserList.map((user) => {
@@ -88,7 +131,7 @@ function App() {
                           <h3>{user.name}</h3>
                         </div>
                         <div onClick={() => handleAddFriend(user)}>
-                          <div>Add</div>
+                         {new Map(Object.entries(user.friendRequests)).get(loggedInUser?._id) ? <div>Pending</div> : <div>Add</div>} 
                         </div>
                       </div>
                     </div>
@@ -96,9 +139,16 @@ function App() {
                 })
               }
             </div>
-            : userData.length > 0 ? <h3>users found</h3>
+            : loggedInUser && new Map(Object.entries(loggedInUser?.friendList)).size > 0 ? 
+              Array.from(new Map(Object.entries(loggedInUser.friendList)), ([key,value]) =>{
+                return(
+                  <div>
+                     {value.user.name}
+                  </div>
+                )
+              })
               :
-              <div className='flex justify-center items-center h-full'>
+              <div className='flex justify-center items-center h-screen'>
                 <h2>No users found add some friends</h2>
               </div>
           }

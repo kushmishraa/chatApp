@@ -2,6 +2,7 @@ const { set } = require('mongoose');
 const User = require('../Models/UserModel');
 const user = require('../Models/UserModel');
 const bcrypt = require('bcrypt');
+const { ObjectId } = require('mongodb');
 
 const registerUser = async (req, res) => {
     console.log("req body =>", req.body)
@@ -30,21 +31,6 @@ const registerUser = async (req, res) => {
     }
 
 };
-
-const findUser = async (req, res) => {
-    if (req.body) {
-        const { username, email } = req.body;
-        const params = username ?? email;
-        if (params) {
-            const findedUser = await User.findOne({ userName: params });
-            if (findedUser) {
-                res.status(200).send({ user: findedUser });
-            } else {
-                res.status(404).send({ message: "User not found" })
-            }
-        }
-    }
-}
 
 const validateUser = async (req, res) => {
     if (req.body) {
@@ -110,15 +96,47 @@ const addFriend = async (req, res) => {
 
         const senderUser = await User.findOne({ _id: from });
         const toUser = await user.findOne({ _id: userId });
+
+        // if both users send friend req to each other
+        if(toUser.friendRequests.get(senderUser._id)){
+            toUser.friendRequests.delete(senderUser._id);
+            senderUser.friendRequests.delete(toUser._id);
+
+            senderUser.friendList = new Map();
+            senderUser.friendList.set(toUser._id,{
+                userId : toUser._id,
+                timeStamp : Date.now(),
+                message : new Map()
+            })
+
+            toUser.friendList = new Map();
+            toUser.friendList.set(senderUser._id, {
+                userId : senderUser._id,
+                timeStamp : Date.now(),
+                message: new Map()
+            })
+
+            const senderUserSaved = await senderUser.save();
+            const toUserSaved = await toUser.save();
+            if(senderUserSaved && toUserSaved){
+                res.status(200).send({message:"Friends added successfully"});
+                return;
+            }else{
+                res.status(500).send({message:"something went wrong"});
+            }
+        }
+
         if (toUser.friendRequests) {
             if (toUser.friendRequests.get(from)) {
                 res.status(403).send({ message: "already friends" });
             } else {
-                toUser.friendRequests.set(from, { from: from, name: senderUser.name, lastName: senderUser.lastName })
+                toUser.friendRequests.set(from,  { from: senderUser })
             }
         } else {
             toUser.friendRequests = new Map();
-            toUser.friendRequests.set(from, { from: from, name: senderUser.name, lastName: senderUser.lastName })
+            toUser.friendRequests.set(from, 
+                { from: senderUser }
+            )
         }
 
         const userSaved = await toUser.save();
@@ -127,10 +145,70 @@ const addFriend = async (req, res) => {
     }
 }
 
+const handleFriendRequest = async (req, res) =>{
+    if(req.body){
+        const {isAccepted, from, to} = req.body;
+        console.log(req.body);
+        const senderUser = await User.findOne({_id : from._id});
+        const toUser = await User.findOne({_id: to._id});
+
+        console.log(senderUser);
+        if(isAccepted){
+            console.log("sender user =>", senderUser);
+            toUser.friendRequests.delete(senderUser._id);
+            senderUser.friendRequests && senderUser.friendRequests.delete(toUser._id);
+
+            console.log("to user =>", toUser);
+
+            senderUser.friendList = new Map();
+            senderUser.friendList.set(toUser._id,{
+                user : {
+                    _id : toUser._id,
+                    name : toUser.name,
+                    lastName: toUser.lastName,
+                    email : toUser.email, 
+                },
+                timeStamp : Date.now(),
+                message : new Map()
+            });
+
+            toUser.friendList = new Map();
+            toUser.friendList.set(senderUser._id, {
+                user : {
+                    _id : senderUser._id,
+                    name : senderUser.name,
+                    lastName: senderUser.lastName,
+                    email : senderUser.email, 
+                },
+                timeStamp : Date.now(),
+                message: new Map()
+            });
+
+            const senderUserSaved = await senderUser.save();
+            const toUserSaved = await toUser.save();
+            if(senderUserSaved && toUserSaved){
+                res.status(200).send({message:"Friends added successfully", isAccepted : true, user : senderUser});
+                return;
+            }else{
+                res.status(500).send({message:"something went wrong"});
+            }
+        }else{
+           senderUser.friendRequests && senderUser.friendRequests.delete(to._id) ;
+           toUser.friendRequests && toUser.friendRequests.delete(senderUser._id);
+           const senderSaved = await senderUser.save();
+           const toUserSaved = await toUser.save();
+           if(senderSaved && toUserSaved){
+            res.status(200).send({isAccepted: false})
+           }
+        }
+    }
+}
+
 module.exports = {
     registerUser,
     validateUser,
     resetPassword,
     searchUsers,
-    addFriend
+    addFriend,
+    handleFriendRequest
 }

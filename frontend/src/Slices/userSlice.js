@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { makeApiCall } from '../api/api';
 
-
 export const validateuser = createAsyncThunk(
     'validateUser',
     async (loginDetails, thunkAPI) => {
@@ -56,6 +55,22 @@ export const updatePassword = createAsyncThunk(
         }
     }
 )
+
+export const handleFriendRequest = createAsyncThunk(
+    "handleFriendRequest",
+    async(action, thunkAPI) =>{
+    if(action){
+      const options = {
+        method : "POST",
+        body:action,
+        path:"handleFriendRequest"
+      }
+      const res = await makeApiCall(options);
+      console.log(res);
+    }
+  }
+)
+
 
 const userSlice = createSlice({
     name: "userSlice",

@@ -26,4 +26,8 @@ router.post('/addFriend', (req, res) => {
     userController.addFriend(req, res)
 })
 
+router.post('/handleFriendRequest', (req,res)=>{
+    userController.handleFriendRequest(req,res);
+})
+
 module.exports = router;
