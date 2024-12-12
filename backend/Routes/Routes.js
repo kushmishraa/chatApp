@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../Controllers/userController');
+const webSocketController = require('../Controllers/webSocketController');
 
 router.get("/", (req, res) => {
     res.status(200).send("working").end();
@@ -26,8 +27,12 @@ router.post('/addFriend', (req, res) => {
     userController.addFriend(req, res)
 })
 
-router.post('/handleFriendRequest', (req,res)=>{
-    userController.handleFriendRequest(req,res);
+router.post('/handleFriendRequest', (req, res) => {
+    userController.handleFriendRequest(req, res);
+})
+
+router.post('/initWs', (req, res) => {
+    webSocketController.initializeWS(req, res);
 })
 
 module.exports = router;

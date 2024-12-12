@@ -98,31 +98,31 @@ const addFriend = async (req, res) => {
         const toUser = await user.findOne({ _id: userId });
 
         // if both users send friend req to each other
-        if(toUser.friendRequests.get(senderUser._id)){
+        if (toUser.friendRequests.get(senderUser._id)) {
             toUser.friendRequests.delete(senderUser._id);
             senderUser.friendRequests.delete(toUser._id);
 
             senderUser.friendList = new Map();
-            senderUser.friendList.set(toUser._id,{
-                userId : toUser._id,
-                timeStamp : Date.now(),
-                message : new Map()
+            senderUser.friendList.set(toUser._id, {
+                userId: toUser._id,
+                timeStamp: Date.now(),
+                message: new Map()
             })
 
             toUser.friendList = new Map();
             toUser.friendList.set(senderUser._id, {
-                userId : senderUser._id,
-                timeStamp : Date.now(),
+                userId: senderUser._id,
+                timeStamp: Date.now(),
                 message: new Map()
             })
 
             const senderUserSaved = await senderUser.save();
             const toUserSaved = await toUser.save();
-            if(senderUserSaved && toUserSaved){
-                res.status(200).send({message:"Friends added successfully"});
+            if (senderUserSaved && toUserSaved) {
+                res.status(200).send({ message: "Friends added successfully" });
                 return;
-            }else{
-                res.status(500).send({message:"something went wrong"});
+            } else {
+                res.status(500).send({ message: "something went wrong" });
             }
         }
 
@@ -130,11 +130,11 @@ const addFriend = async (req, res) => {
             if (toUser.friendRequests.get(from)) {
                 res.status(403).send({ message: "already friends" });
             } else {
-                toUser.friendRequests.set(from,  { from: senderUser })
+                toUser.friendRequests.set(from, { from: senderUser })
             }
         } else {
             toUser.friendRequests = new Map();
-            toUser.friendRequests.set(from, 
+            toUser.friendRequests.set(from,
                 { from: senderUser }
             )
         }
@@ -145,15 +145,15 @@ const addFriend = async (req, res) => {
     }
 }
 
-const handleFriendRequest = async (req, res) =>{
-    if(req.body){
-        const {isAccepted, from, to} = req.body;
+const handleFriendRequest = async (req, res) => {
+    if (req.body) {
+        const { isAccepted, from, to } = req.body;
         console.log(req.body);
-        const senderUser = await User.findOne({_id : from._id});
-        const toUser = await User.findOne({_id: to._id});
+        const senderUser = await User.findOne({ _id: from._id });
+        const toUser = await User.findOne({ _id: to._id });
 
         console.log(senderUser);
-        if(isAccepted){
+        if (isAccepted) {
             console.log("sender user =>", senderUser);
             toUser.friendRequests.delete(senderUser._id);
             senderUser.friendRequests && senderUser.friendRequests.delete(toUser._id);
@@ -161,45 +161,45 @@ const handleFriendRequest = async (req, res) =>{
             console.log("to user =>", toUser);
 
             senderUser.friendList = new Map();
-            senderUser.friendList.set(toUser._id,{
-                user : {
-                    _id : toUser._id,
-                    name : toUser.name,
+            senderUser.friendList.set(toUser._id, {
+                user: {
+                    _id: toUser._id,
+                    name: toUser.name,
                     lastName: toUser.lastName,
-                    email : toUser.email, 
+                    email: toUser.email,
                 },
-                timeStamp : Date.now(),
-                message : new Map()
+                timeStamp: Date.now(),
+                message: new Map()
             });
 
             toUser.friendList = new Map();
             toUser.friendList.set(senderUser._id, {
-                user : {
-                    _id : senderUser._id,
-                    name : senderUser.name,
+                user: {
+                    _id: senderUser._id,
+                    name: senderUser.name,
                     lastName: senderUser.lastName,
-                    email : senderUser.email, 
+                    email: senderUser.email,
                 },
-                timeStamp : Date.now(),
+                timeStamp: Date.now(),
                 message: new Map()
             });
 
             const senderUserSaved = await senderUser.save();
             const toUserSaved = await toUser.save();
-            if(senderUserSaved && toUserSaved){
-                res.status(200).send({message:"Friends added successfully", isAccepted : true, user : senderUser});
+            if (senderUserSaved && toUserSaved) {
+                res.status(200).send({ message: "Friends added successfully", isAccepted: true, user: senderUser });
                 return;
-            }else{
-                res.status(500).send({message:"something went wrong"});
+            } else {
+                res.status(500).send({ message: "something went wrong" });
             }
-        }else{
-           senderUser.friendRequests && senderUser.friendRequests.delete(to._id) ;
-           toUser.friendRequests && toUser.friendRequests.delete(senderUser._id);
-           const senderSaved = await senderUser.save();
-           const toUserSaved = await toUser.save();
-           if(senderSaved && toUserSaved){
-            res.status(200).send({isAccepted: false})
-           }
+        } else {
+            senderUser.friendRequests && senderUser.friendRequests.delete(to._id);
+            toUser.friendRequests && toUser.friendRequests.delete(senderUser._id);
+            const senderSaved = await senderUser.save();
+            const toUserSaved = await toUser.save();
+            if (senderSaved && toUserSaved) {
+                res.status(200).send({ isAccepted: false })
+            }
         }
     }
 }
