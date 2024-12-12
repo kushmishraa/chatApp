@@ -9,6 +9,7 @@ function App() {
   const [searchUser, setSearchUser] = useState("");
   const [searchUserList, setSearchUserList] = useState([]);
   const [showFriendRequestPage, setShowFriendRequestPage] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   
   const loggedInUser = useSelector((state) => state.user.loggedInUser);
@@ -140,21 +141,45 @@ function App() {
               }
             </div>
             : loggedInUser && new Map(Object.entries(loggedInUser?.friendList)).size > 0 ? 
-              Array.from(new Map(Object.entries(loggedInUser.friendList)), ([key,value]) =>{
+            <div className='flex flex-col flex-start items-start mt-2'>
+              {Array.from(new Map(Object.entries(loggedInUser.friendList)), ([key,value]) =>{
                 return(
-                  <div>
+                  <div className='p-2 border border-black w-full flex flex-start' onClick={()=>setSelectedUser(value.user)}>
                      {value.user.name}
                   </div>
                 )
-              })
+              })}
+              </div>
               :
               <div className='flex justify-center items-center h-screen'>
                 <h2>No users found add some friends</h2>
               </div>
           }
         </div>
-        <div className='w-full h-full bg-red-500'>
-
+        <div className='w-full h-full bg-white'>
+          {
+            selectedUser != null ? 
+            <div className='relative flex flex-col max-h-screen overflow-scroll'>
+              <div className='p-2 border border-black sticky top-0 bg-white'>
+                <div className='flex flex-start'>
+                  <h3>{selectedUser.name}</h3>
+                </div>
+              </div>
+              <div className='h-[1500px] bg-red-500 flex flex-col'>
+                <button>end</button>
+                <h3 className='mt-[100%]'>Messages</h3>
+              </div>
+              <div className='border border-2 p-2 sticky bottom-0 bg-white'>
+                <div className='w-full h-[100px]'>
+                  <input 
+                  type='textbox' 
+                  placeholder='Enter your message'
+                  className='w-full h-full' />
+                </div>
+              </div>
+            </div> 
+            : <>please select a chat</>
+          }
         </div>
       </div>
     </div>
