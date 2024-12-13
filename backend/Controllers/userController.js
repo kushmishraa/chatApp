@@ -167,6 +167,7 @@ const handleFriendRequest = async (req, res) => {
                     name: toUser.name,
                     lastName: toUser.lastName,
                     email: toUser.email,
+                    userName: toUser.userName
                 },
                 timeStamp: Date.now(),
                 message: new Map()
@@ -179,6 +180,7 @@ const handleFriendRequest = async (req, res) => {
                     name: senderUser.name,
                     lastName: senderUser.lastName,
                     email: senderUser.email,
+                    useName: senderUser.userName
                 },
                 timeStamp: Date.now(),
                 message: new Map()
@@ -204,11 +206,35 @@ const handleFriendRequest = async (req, res) => {
     }
 }
 
+const sendMessage = async (data) =>{
+    const reciverUserId =  data.selectedUser;
+    const loggedInuserId = data.loggedInUser;
+
+    const reciverUser = await User.findOne({_id: reciverUserId});
+    const loggedInuser = await User.findOne({_id: loggedInuserId});
+
+    const reciverFriendObj = reciverUser.friendList.get(loggedInuser._id);
+    const loggedInuserFriendObj = loggedInuser.friendList.get(reciverUser._id);
+
+    let reciverMsgMap = reciverFriendObj.message;
+    if(reciverMsgMap.size && reciverMsgMap.size > 0){
+
+    }
+    reciverMsgMap = new Map();
+    reciverMsgMap.put(`${reciverUser.userName}-${data.timeStamp}`);
+
+    console.log("reciver friend object  =>", reciverFriendObj);
+    console.log("reciver friend list  =>", loggedInuserFriendObj);
+
+    console.log("sender user =>",loggedInuser, "reciver user =>", reciverUser);
+}
+
 module.exports = {
     registerUser,
     validateUser,
     resetPassword,
     searchUsers,
     addFriend,
-    handleFriendRequest
+    handleFriendRequest,
+    sendMessage
 }

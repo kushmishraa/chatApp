@@ -112,7 +112,7 @@ function App() {
         </div>
 
         <div className='w-full h-full bg-white'>
-          {selectedUser && <ChatComponent selectedUser={selectedUser} />}
+          {selectedUser && <ChatComponent selectedUser={selectedUser} loggedInUser={loggedInUser} />}
         </div>
       </div>
     </div>

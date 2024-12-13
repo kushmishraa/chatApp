@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-export const ChatComponent = ({ selectedUser }) => {
+export const ChatComponent = ({ selectedUser, loggedInUser }) => {
     const [socket, setSocket] = useState();
     const [message, setMessage] = useState("");
     const lastDivRef = useRef();
@@ -17,7 +17,16 @@ export const ChatComponent = ({ selectedUser }) => {
 
     const sendMsg = () => {
         if (socket && socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ message: message }));
+            socket.send(JSON.stringify({ 
+                message: {
+                    type:"sendMessage",
+                    selectedUser: selectedUser._id,
+                    username: selectedUser.userName,
+                    loggedInUser: loggedInUser._id,
+                    timeStamp : Date.now(),
+                    message: message
+                }
+             }));
         }
     }
 
@@ -49,15 +58,14 @@ export const ChatComponent = ({ selectedUser }) => {
         <>
             {
                 selectedUser != null ?
-                    <div className='relative flex flex-col max-h-screen overflow-scroll'>
+                    <div className='relative flex flex-col h-full max-h-screen overflow-scroll'>
                         <div className='p-2 border border-black sticky top-0 bg-white'>
                             <div className='flex flex-start'>
                                 <h3>{selectedUser.name}</h3>
                             </div>
                         </div>
-                        <div className='h-[1500px] flex flex-col'>
-                            <button>end</button>
-                            <h3 className='mt-[100%]' ref={lastDivRef}>Messages</h3>
+                        <div className='flex-grow flex flex-col'>
+                            <h3 className='mt-auto' ref={lastDivRef}>Messages</h3>
                         </div>
                         <div className='flex gap-5 items-end border-2 p-5 sticky bottom-0 bg-white'>
                             <div></div>
