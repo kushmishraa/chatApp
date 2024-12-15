@@ -5,28 +5,41 @@ let wss = null;
 
 const initializeWS = (req, res) => {
     if (req.body) {
-        console.log("=>", req.body)
-        const { serverStatus } = req.body
+        const { serverStatus, loggedInUser } = req.body
         if (serverStatus && !wss) {
             const server = req.app.locals.server;
             wss = new WebSocket.Server({ server })
         }
-            wss.on("connection", (ws) => {
-                console.log("web socket connection established");
-                console.log("Someone Connected");
-                ws.onmessage = (event) =>{
-                    console.log("message from socket =>", JSON.parse(event.data));
-                    const data = JSON.parse(event.data);
-                    console.log(data.message)
-                    if(data?.message?.type == "sendMessage"){
-                        console.log("sending message");
-                        const msgData = data.message;
-                        userController.sendMessage(msgData);
-                    }
+
+        wss.on("connection", (ws) => {
+            ws.userId = loggedInUser._id;
+            ws.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+                if (data?.message?.type == "sendMessage") {
+                    const msgData = data.message;
+                    const { newLoggedInUser, newReciverUser } = await userController.sendMessage(msgData);
+                    wss.clients.forEach(client => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            if (client.userId == data.message.loggedInUser) {
+                                client.send(JSON.stringify({
+                                    type: "updatedMessage",
+                                    updatedUser: newLoggedInUser
+                                }));
+                            } else if (client.userId == data.message.selectedUser) {
+                                client.send(JSON.stringify({
+                                    type: "updatedMessage",
+                                    updatedUser: newReciverUser
+                                }));
+                            }
+
+                        }
+
+                    });
                 }
-            });
-            res.status(200).send({ message: "Web socket initialized" })
-        
+            }
+        });
+        res.status(200).send({ message: "Web socket initialized" })
+
     }
 }
 

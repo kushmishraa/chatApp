@@ -206,27 +206,44 @@ const handleFriendRequest = async (req, res) => {
     }
 }
 
-const sendMessage = async (data) =>{
-    const reciverUserId =  data.selectedUser;
+const sendMessage = async (data) => {
+    const reciverUserId = data.selectedUser;
     const loggedInuserId = data.loggedInUser;
 
-    const reciverUser = await User.findOne({_id: reciverUserId});
-    const loggedInuser = await User.findOne({_id: loggedInuserId});
+    const reciverUser = await User.findOne({ _id: reciverUserId });
+    const loggedInuser = await User.findOne({ _id: loggedInuserId });
+
 
     const reciverFriendObj = reciverUser.friendList.get(loggedInuser._id);
     const loggedInuserFriendObj = loggedInuser.friendList.get(reciverUser._id);
 
     let reciverMsgMap = reciverFriendObj.message;
-    if(reciverMsgMap.size && reciverMsgMap.size > 0){
+    let loggedInUserMsgMap = loggedInuserFriendObj.message;
 
+    if (reciverMsgMap?.size && reciverMsgMap.size > 0) {
+        reciverMsgMap.set(`${loggedInuser.userName}-${data.timeStamp}`, data.message);
+    } else {
+        reciverMsgMap = new Map();
+        reciverMsgMap.set(`${loggedInuser.userName}-${data.timeStamp}`, data.message);
     }
-    reciverMsgMap = new Map();
-    reciverMsgMap.put(`${reciverUser.userName}-${data.timeStamp}`);
 
-    console.log("reciver friend object  =>", reciverFriendObj);
-    console.log("reciver friend list  =>", loggedInuserFriendObj);
+    reciverUser.friendList.get(loggedInuser._id).message = reciverMsgMap;
 
-    console.log("sender user =>",loggedInuser, "reciver user =>", reciverUser);
+    if (loggedInUserMsgMap?.size && loggedInUserMsgMap.size > 0) {
+        loggedInUserMsgMap.set(`${loggedInuser.userName}-${data.timeStamp}`, data.message);
+    } else {
+        loggedInUserMsgMap = new Map();
+        loggedInUserMsgMap.set(`${loggedInuser.userName}-${data.timeStamp}`, data.message);
+    }
+
+    loggedInuser.friendList.get(reciverUser._id).message = loggedInUserMsgMap;
+
+    const newLoggedInUser = await loggedInuser.save();
+    const newReciverUser = await reciverUser.save();
+
+    if (newLoggedInUser && newReciverUser) {
+        return { newLoggedInUser, newReciverUser };
+    }
 }
 
 module.exports = {

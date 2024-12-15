@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { FriendRequestPage } from './Components/FriendRequestPage';
 import { SearchList } from './Components/SearchList';
 import { ChatComponent } from './Components/ChatComponent';
+import { convertObjToMap } from './Utils/utils';
 
 function App() {
   const [searchUser, setSearchUser] = useState("");
@@ -17,7 +18,7 @@ function App() {
   const loggedInUser = useSelector((state) => state.user.loggedInUser);
   const cachedLists = useSelector(state => state.user.cachedLists);
   const friendRequests = loggedInUser?._id && new Map(Object.entries(loggedInUser.friendRequests));
-  const friendList = loggedInUser && new Map(Object.entries(loggedInUser?.friendList));
+  const friendList = loggedInUser && convertObjToMap(loggedInUser?.friendList);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -112,7 +113,7 @@ function App() {
         </div>
 
         <div className='w-full h-full bg-white'>
-          {selectedUser && <ChatComponent selectedUser={selectedUser} loggedInUser={loggedInUser} />}
+          {selectedUser && <ChatComponent selectedUser={selectedUser} loggedInUser={loggedInUser} friendList={friendList} />}
         </div>
       </div>
     </div>

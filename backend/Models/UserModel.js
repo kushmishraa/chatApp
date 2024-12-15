@@ -10,7 +10,15 @@ const userSchema = mongoose.Schema({
     activeStatus: { type: Boolean, required: false },
     isTyping: { type: Boolean, required: false },
     friendRequests: { type: Map, of: Object, default: new Map() },
-    friendList: {type: Map, of: Object, default: new Map()}
+    friendList: {
+        type: Map, of: new mongoose.Schema({
+            message: {
+                type: Map,
+                of: String,
+                default: new Map()
+            }
+        }), default: new Map(),
+    }
 });
 
 const User = mongoose.model('Users', userSchema);
